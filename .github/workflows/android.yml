@@ -8,13 +8,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: slyces/buildozer:latest # Используем готовый образ с настроенным Android SDK
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install and Build
+      - name: Build with Buildozer
         run: |
-          pip install --upgrade buildozer
-          buildozer android debug
+          buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
