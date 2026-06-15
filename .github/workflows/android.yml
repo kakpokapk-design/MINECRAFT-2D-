@@ -9,22 +9,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
-          pip install --upgrade buildozer
-
+      - uses: actions/checkout@v4
+      
       - name: Build with Buildozer
-        run: |
-          # Автоматически подтверждаем все запросы Buildozer
-          echo "y" | buildozer -v android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: ArtemSBulgakov/buildozer-action@v1
         with:
-          name: package
-          path: bin/*.apk
+          command: buildozer android debug
+        env:
+          # Это помогает Buildozer не требовать лишнего интерактивного подтверждения
+          ANDROIDSDK: /usr/local/android-sdk
