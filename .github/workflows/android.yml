@@ -22,7 +22,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
-        # Добавили библиотеку sh, без которой свежий Билдозер выдает ModuleNotFoundError
         pip3 install --user --upgrade buildozer cython virtualenv sh
 
     - name: Fresh Buildozer Configure
@@ -30,14 +29,10 @@ jobs:
         rm -rf .buildozer/
         rm -rf bin/
         rm -f buildozer.spec
-        
         export PATH=$PATH:~/.local/bin
         buildozer init
-        
         sed -i 's/^#\? \?android.accept_sdk_license =.*/android.accept_sdk_license = True/' buildozer.spec
         sed -i 's/^#\? \?android.api =.*/android.api = 33/' buildozer.spec
-        
-        # Настройка требований для игры
         sed -i 's/^#\? \?requirements =.*/requirements = python3,kivy,pillow/' buildozer.spec
 
     - name: Build with Buildozer
