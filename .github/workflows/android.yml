@@ -24,26 +24,27 @@ jobs:
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
         pip3 install --user --upgrade "buildozer>=1.5.0"
 
-    - name: Create Fresh Buildozer Spec
+    - name: Create Fixed Buildozer Spec
       run: |
-        # Сносим старый конфиг под ноль
+        # Полностью удаляем старый файл
         rm -f buildozer.spec
         buildozer init
         
-        # Включаем автопринятие лицензий Google
-        sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
-        sed -i 's/android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
+        # Жёстко заменяем строки конфигурации, чтобы исключить любые сбои версий
+        sed -i 's/^#\? \?android.accept_sdk_license =.*/android.accept_sdk_license = True/' buildozer.spec
+        sed -i 's/^#\? \?android.api =.*/android.api = 33/' buildozer.spec
         
-        # Жёстко фиксируем проверенные версии Android API и NDK
-        sed -i 's/android.api = .*/android.api = 33/' buildozer.spec
-        sed -i 's/android.ndk = .*/android.ndk = 25b/' buildozer.spec
+        # Фиксируем стабильный NDK r25b (с r27/r28 Kivy падает в ошибку Broken Pipe)
+        sed -i 's/^#\? \?android.ndk =.*/android.ndk = 25b/' buildozer.spec
+        sed -i 's/^#\? \?android.ndk_path =.*/android.ndk_path = \/home\/runner\/\.buildozer\/android\/platform\/android-ndk-r25b/' buildozer.spec
         
-        # ЧИСТЫЕ ТРЕБОВАНИЯ: Убираем kivymd, оставляем только стабильный kivy и pillow
-        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,pillow/' buildozer.spec
+        # Настройка чистых требований для 2D выживалки
+        sed -i 's/^#\? \?requirements =.*/requirements = python3,kivy,pillow/' buildozer.spec
 
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
+        # Запуск сборки с принудительным использованием наших настроек
         buildozer android debug
 
     - name: Upload APK Artifact
