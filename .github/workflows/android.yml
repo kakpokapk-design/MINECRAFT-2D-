@@ -11,23 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install and Build
         run: |
-          sudo apt update
-          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
-          pip3 install --upgrade buildozer
-
-      - name: Accept Licenses
-        run: |
-          # Создаем структуру папок для лицензий и записываем туда согласие
-          mkdir -p $HOME/.android/sdk/licenses
-          echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > $HOME/.android/sdk/licenses/android-sdk-license
-          echo -e "\n84831b9409646a918e30573bab4c9c91346d8613" > $HOME/.android/sdk/licenses/android-sdk-preview-license
-
-      - name: Build
-        run: |
-          # Запускаем сборку
-          buildozer -v android debug
+          pip install --upgrade buildozer
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
