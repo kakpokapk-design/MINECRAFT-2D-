@@ -18,31 +18,33 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install Buildozer and Dependencies
+    - name: Install Buildozer and All Tools
       run: |
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
-        pip3 install --user --upgrade "buildozer>=1.5.0"
+        # Ставим проверенную стабильную версию buildozer, где нет бага с парсингом NDK
+        pip3 install --user "buildozer==1.5.0"
 
-    - name: Create Fixed Buildozer Spec
+    - name: Create Clean Buildozer Spec
       run: |
+        # Сносим старый конфиг полностью
         rm -f buildozer.spec
         buildozer init
         
+        # Разрешаем лицензии
         sed -i 's/^#\? \?android.accept_sdk_license =.*/android.accept_sdk_license = True/' buildozer.spec
+        
+        # Используем стандартные стабильные таргеты для Buildozer 1.5.0
         sed -i 's/^#\? \?android.api =.*/android.api = 33/' buildozer.spec
-        
-        # Фиксируем стабильный NDK r25b
         sed -i 's/^#\? \?android.ndk =.*/android.ndk = 25b/' buildozer.spec
-        sed -i 's/^#\? \?android.ndk_path =.*/android.ndk_path = \/home\/runner\/\.buildozer\/android\/platform\/android-ndk-r25b/' buildozer.spec
         
-        # Настройка чистых требований для игры
+        # Настройка чистых требований (только Kivy и Pillow для текстур)
         sed -i 's/^#\? \?requirements =.*/requirements = python3,kivy,pillow/' buildozer.spec
 
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        # ТЕПЕРЬ ТОЛЬКО СБОРКА: убрали deploy run, чтобы сервер не искал телефон
+        # Чистая сборка БЕЗ deploy run и БЕЗ ручных кривых путей NDK
         buildozer android debug
 
     - name: Upload APK Artifact
