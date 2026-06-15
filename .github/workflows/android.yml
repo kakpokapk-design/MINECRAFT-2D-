@@ -21,15 +21,17 @@ jobs:
     - name: Install Buildozer and All Tools
       run: |
         sudo apt-get update
-        # Добавляем ant, потому что он вылез в логах!
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
-        pip3 install --user --upgrade buildozer
+        pip3 install --user --upgrade "buildozer>=1.5.0"
 
     - name: Auto Fix Buildozer Spec
       run: |
-        # Если файл настроек есть, мы подменяем в нем старые версии на рабочие
         if [ -f buildozer.spec ]; then
+          # Включаем автоматическое принятие лицензий внутри самого Билдозера
           sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
+          sed -i 's/android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
+          
+          # Фиксируем стабильную и проверенную версию API и NDK
           sed -i 's/android.api = .*/android.api = 33/' buildozer.spec
           sed -i 's/android.ndk = .*/android.ndk = 25b/' buildozer.spec
         fi
@@ -37,9 +39,9 @@ jobs:
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        # Жестко принимаем все лицензии и запускаем
-        yes | buildozer android debug
-        
+        # Запускаем чистую сборку БЕЗ бесконечного спама "yes"
+        buildozer android debug
+
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
