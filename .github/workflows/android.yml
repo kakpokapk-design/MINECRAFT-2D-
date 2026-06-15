@@ -19,7 +19,9 @@ jobs:
 
       - name: Build
         run: |
-          # Прямой запуск без контейнеров
+          # Принудительно принимаем все лицензии Android SDK
+          mkdir -p ~/.android && touch ~/.android/repositories.cfg
+          yes | sdkmanager --licenses || true
           buildozer -v android debug
 
       - name: Upload APK
