@@ -22,33 +22,29 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
-        # Ставим проверенную стабильную версию buildozer, где нет бага с парсингом NDK
         pip3 install --user "buildozer==1.5.0"
 
     - name: Create Clean Buildozer Spec
       run: |
-        # Сносим старый конфиг полностью
+        # Жёстко удаляем абсолютно все старые кэши и конфиги, чтобы убрать конфликты
+        rm -rf .buildozer
+        rm -rf bin
         rm -f buildozer.spec
+        
+        # Создаем новый чистый конфиг
         buildozer init
         
-        # Разрешаем лицензии
+        # Настраиваем параметры безопасности и версии
         sed -i 's/^#\? \?android.accept_sdk_license =.*/android.accept_sdk_license = True/' buildozer.spec
-        
-        # Используем стандартные стабильные таргеты для Buildozer 1.5.0
         sed -i 's/^#\? \?android.api =.*/android.api = 33/' buildozer.spec
         sed -i 's/^#\? \?android.ndk =.*/android.ndk = 25b/' buildozer.spec
         
-        # Настройка чистых требований (только Kivy и Pillow для текстур)
+        # Чистые требования без лишних библиотек
         sed -i 's/^#\? \?requirements =.*/requirements = python3,kivy,pillow/' buildozer.spec
 
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        # Чистая сборка БЕЗ deploy run и БЕЗ ручных кривых путей NDK
+        # Запускаем сборку с полной предварительной очисткой внутри самого билдозера
+        buildozer android clean
         buildozer android debug
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
