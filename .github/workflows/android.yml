@@ -24,10 +24,20 @@ jobs:
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6
         pip3 install --user --upgrade buildozer
 
+    - name: Accept Android SDK Licenses
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | execstack --version || true
+        # Автоматически принимаем все лицензии Google SDK
+        mkdir -p /home/runner/.buildozer/android/platform/android-sdk/licenses || true
+        echo -e "\n2446a3e6ce3662fecc96eb29114654c1db0740a3\n8522d4756a4f7577f2694d30a18d6143bdf211a1\nf317185a0253a32839d78063d737546f0bed014e\n601085b94cd77f6b540ac228208b95f08b7465d8\n331051922c431ad747b8cc266858bc7769ef4305\nde13173019909cd74d48c73e8493c4e02a0f11cd\ne9ac30594db410da72c24f4a2d75bb4d6940a710" > /home/runner/.buildozer/android/platform/android-sdk/licenses/android-sdk-license || true
+
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        buildozer android debug
+        # Передаем команду 'yes', чтобы Buildozer сам соглашался на установку пакетов
+        yes | buildozer android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
