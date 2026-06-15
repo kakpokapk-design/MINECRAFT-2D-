@@ -16,35 +16,35 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
-    - name: Install Buildozer and All Tools
+    - name: Install Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
-        pip3 install --user "buildozer==1.5.0"
+        # Ставим актуальный билд тул без жестких рамок версий
+        pip3 install --user --upgrade buildozer cython virtualenv
 
-    - name: Create Clean Buildozer Spec
+    - name: Fresh Buildozer Configure
       run: |
-        # Жёстко удаляем абсолютно все старые кэши и конфиги, чтобы убрать конфликты
-        rm -rf .buildozer
-        rm -rf bin
+        # Полная зачистка всех скрытых папок и старых конфигов в репозитории
+        rm -rf .buildozer/
+        rm -rf bin/
         rm -f buildozer.spec
         
-        # Создаем новый чистый конфиг
+        # Генерируем абсолютно новый чистый файл настроек
+        export PATH=$PATH:~/.local/bin
         buildozer init
         
-        # Настраиваем параметры безопасности и версии
+        # Аккуратно правим параметры, чтобы не сломать парсер
         sed -i 's/^#\? \?android.accept_sdk_license =.*/android.accept_sdk_license = True/' buildozer.spec
         sed -i 's/^#\? \?android.api =.*/android.api = 33/' buildozer.spec
-        sed -i 's/^#\? \?android.ndk =.*/android.ndk = 25b/' buildozer.spec
         
-        # Чистые требования без лишних библиотек
+        # Настройка требований для игры (только самое нужное)
         sed -i 's/^#\? \?requirements =.*/requirements = python3,kivy,pillow/' buildozer.spec
 
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        # Запускаем сборку с полной предварительной очисткой внутри самого билдозера
-        buildozer android clean
+        # Собираем в режиме debug. Свежий билдозер сам скачает нужный ему NDK без ошибок.
         buildozer android debug
