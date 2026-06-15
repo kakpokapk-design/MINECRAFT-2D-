@@ -26,25 +26,23 @@ jobs:
 
     - name: Create Fixed Buildozer Spec
       run: |
-        # Полностью удаляем старый файл
         rm -f buildozer.spec
         buildozer init
         
-        # Жёстко заменяем строки конфигурации, чтобы исключить любые сбои версий
         sed -i 's/^#\? \?android.accept_sdk_license =.*/android.accept_sdk_license = True/' buildozer.spec
         sed -i 's/^#\? \?android.api =.*/android.api = 33/' buildozer.spec
         
-        # Фиксируем стабильный NDK r25b (с r27/r28 Kivy падает в ошибку Broken Pipe)
+        # Фиксируем стабильный NDK r25b
         sed -i 's/^#\? \?android.ndk =.*/android.ndk = 25b/' buildozer.spec
         sed -i 's/^#\? \?android.ndk_path =.*/android.ndk_path = \/home\/runner\/\.buildozer\/android\/platform\/android-ndk-r25b/' buildozer.spec
         
-        # Настройка чистых требований для 2D выживалки
+        # Настройка чистых требований для игры
         sed -i 's/^#\? \?requirements =.*/requirements = python3,kivy,pillow/' buildozer.spec
 
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:~/.local/bin
-        # Запуск сборки с принудительным использованием наших настроек
+        # ТЕПЕРЬ ТОЛЬКО СБОРКА: убрали deploy run, чтобы сервер не искал телефон
         buildozer android debug
 
     - name: Upload APK Artifact
