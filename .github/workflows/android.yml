@@ -10,11 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev execstack libstdc++6 ant
+          pip3 install --upgrade buildozer
+
+      - name: Build
+        run: |
+          # Прямой запуск без контейнеров
+          buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          command: buildozer android debug
-        env:
-          # Это помогает Buildozer не требовать лишнего интерактивного подтверждения
-          ANDROIDSDK: /usr/local/android-sdk
+          name: package
+          path: bin/*.apk
